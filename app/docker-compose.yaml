@@ -1,5 +1,5 @@
 # Fill in the YAML configuration for the microservices 
-
+#Create a docker-compose file that runs the RabbitMQ server, producer, one database microservice container, and 2 ride-matching containers. The producer’s IP and port must be passed as an environment variable to the ride-matching containers so they can use it to send the request.
 version: "2.1"
 services:
   rabbitMQ_server:
@@ -24,7 +24,7 @@ services:
   ride_database:
     image: 
     container_name:
-    restart: 
+    restart:  
     depends_on:
       - producer
   
