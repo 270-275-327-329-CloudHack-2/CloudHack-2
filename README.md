@@ -64,9 +64,9 @@ The microservice architecture is one of the most popular forms of deployment, es
 ### Built With
 
 * [Python](https://python.com)
-* [RabbitMQ]
-* [Flask]
-* [Mongo]
+* [RabbitMQ](https://www.rabbitmq.com/)
+* [Flask](https://flask.palletsprojects.com/en/2.1.x/)
+* [Mongo](https://www.mongodb.com/cloud/atlas/lp/try2?utm_source=google&utm_campaign=gs_apac_india_search_core_brand_atlas_desktop&utm_term=mongo&utm_medium=cpc_paid_search&utm_ad=e&utm_ad_campaign_id=12212624347&adgroup=115749713423&gclid=CjwKCAjwxZqSBhAHEiwASr9n9F8ossrzIrTJq5s1_uSbnbFi3uZ5CgI4O0ipMgPl0KiYoUPO_9AfXRoC4esQAvD_BwE)
 
 ## Folder structure
 /*root<br/>
