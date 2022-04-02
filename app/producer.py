@@ -1,60 +1,56 @@
 # Code for Producer
-from multiprocessing import connection
-from flask import Flask, jsonify, request
+from flask import Flask, request
+import json
 import pika
+from uuid import uuid4
+
+consumers = []
 
 app = Flask(__name__)
-@app.route('/')
-def index():
-    return 'Hello, World!'
 
 @app.route('/new_ride', methods=['POST'])
-def new_ride(payload):
-    connection = pika.BlockingConnection(pika.ConnectionParameters(host='rabbitmq'))
+def new_ride():
+    body = json.dumps(request.form)
+    task_id = 'task_' + uuid4().hex
+
+    # Connect to rabbitmq over tcp
+    connection = pika.BlockingConnection(
+        pika.ConnectionParameters(host='rabbitmq'))
+    
+    # Create channel to publish to ride_match queue
     channel = connection.channel()
-    channel.queue_declare(queue='ride_matching_queue', durable=True)
+    channel.queue_declare(queue='ride_match_queue', durable=True)
     channel.basic_publish(
         exchange='',
-        routing_key='ride_matching_queue',
-        body= payload,
+        routing_key='ride_match_queue',
+        body=body,
         properties=pika.BasicProperties(
-            delivery_mode=2,  # make message persistent
+            delivery_mode=pika.spec.PERSISTENT_DELIVERY_MODE,
+            message_id=task_id
         ))
+    
+
+    # Create new channel to publish to database queue
+    channel = connection.channel()
     channel.queue_declare(queue='db_queue', durable=True)
     channel.basic_publish(
         exchange='',
         routing_key='db_queue',
-        body= payload,
+        body=body,
         properties=pika.BasicProperties(
-            delivery_mode=2,  # make message persistent
+            delivery_mode=pika.spec.PERSISTENT_DELIVERY_MODE,
+            message_id=task_id
         ))
+
     connection.close()
-    return jsonify({'message': 'Ride added'})
+
+    return ''
 
 
 @app.route('/new_ride_matching_consumer', methods=['POST'])
-def new_ride_matching_consumer(map):
-    #This will be listening to POST requests from new consumers that contains the consumer_id and store their IP address and name. The Name and IP address will just be stored as a map, in an array, where each map has name and IP as the keys, and the consumer_id and the request IP as the values
-    connection = pika.BlockingConnection(pika.ConnectionParameters(host='rabbitmq'))
-    channel = connection.channel()
-    channel.queue_declare(queue='ride_matching_queue', durable=True)
-    channel.basic_publish(
-        exchange='',
-        routing_key='ride_matching_queue',
-        body= map,
-        properties=pika.BasicProperties(
-            delivery_mode=2,  # make message persistent
-        ))
-    connection.close()
-    return jsonify({'message': 'IP and Name added'})
+def new_ride_matching_consumer():
+    consumers.append({**request.form, 'ip_address': request.remote_addr})
     
+    print(f'List of consumers: {consumers}', flush=True)
 
-
-#A RabbitMQ client to create queues and send the data to consumers. The RabbitMQ client in the producer will register a new queue each for the ride-sharing consumer microservice and one for the database microservice, and will be responsible for sending out the data from the POST requests to consumers
-
-
-
-if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0')
-
-
+    return ''

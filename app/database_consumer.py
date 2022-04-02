@@ -7,9 +7,17 @@ def callback(ch, method, properties, body):
     # Store the data in the database
     # ...
 
-    ch.basic_ack(delivery_tag = method.delivery_tag)
+    body = json.loads(body)
+    body['_id'] = properties.message_id
+    uri = "mongodb+srv://paul:123No4321!@cluster0.uviuy.mongodb.net/test?retryWrites=true&w=majority"
+    client = MongoClient(uri)
+    db = client["Rides"]
+    Collection = db["deets"]
+    Collection.insert_one(body)
+    ch.basic_ack(delivery_tag=method.delivery_tag)
+        
 
-def database_consumer(payload):
+def database_consumer():
     # Connect to the database
     connection = pika.BlockingConnection(pika.ConnectionParameters(host='rabbitmq'))
     channel = connection.channel()
@@ -18,17 +26,9 @@ def database_consumer(payload):
     channel.basic_qos(prefetch_count=1)
     channel.basic_consume(queue='db_queue', on_message_callback=callback)
     channel.start_consuming()
-    uri = "mongodb+srv://paul:123No4321!@cluster0.uviuy.mongodb.net/test?retryWrites=true&w=majority"
-    client = MongoClient(uri)
-
-    db = client["Rides"]
-
-    Collection = db["deets"]
     
-    if isinstance(payload, list):
-        Collection.insert_many(payload)
-    else:
-	    Collection.insert_one(payload)
+    
+database_consumer()
 
 if __name__ == '__main__':
     payload = {
@@ -36,4 +36,4 @@ if __name__ == '__main__':
         "name":"joy"
         
     }
-    database_consumer(payload)
+    database_consumer()
