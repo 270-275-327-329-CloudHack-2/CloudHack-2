@@ -9,7 +9,7 @@ def callback(ch, method, properties, body):
 
     body = json.loads(body)
     body['_id'] = properties.message_id
-    uri = "mongodb+srv://paul:123No4321!@cluster0.uviuy.mongodb.net/test?retryWrites=true&w=majority"
+    uri = "xxx"
     client = MongoClient(uri)
     db = client["Rides"]
     Collection = db["deets"]
